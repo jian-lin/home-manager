@@ -157,7 +157,7 @@ in {
             "${pkgs.coreutils}/bin/chmod --changes +w ${socketDir}";
         };
       } // optionalAttrs (!cfg.socketActivation.enable) {
-        Install = { WantedBy = [ "default.target" ]; };
+        Install = { WantedBy = [ "graphical-session.target" ]; };
       };
 
       home = {
