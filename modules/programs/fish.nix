@@ -285,6 +285,8 @@ in {
     {
       home.packages = [ cfg.package ];
 
+      programs.man.generateCaches = true;
+
       xdg.dataFile."fish/home-manager_generated_completions".source = let
         # paths later in the list will overwrite those already linked
         destructiveSymlinkJoin = args_@{ name, paths, preferLocalBuild ? true
