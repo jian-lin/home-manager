@@ -572,8 +572,6 @@ in
         ${if cfg.history.extended then "setopt" else "unsetopt"} EXTENDED_HISTORY
         ${if cfg.autocd != null then "${if cfg.autocd then "setopt" else "unsetopt"} autocd" else ""}
 
-        ${cfg.initExtra}
-
         # Aliases
         ${aliasesStr}
         ''
@@ -604,6 +602,8 @@ in
             (lib.toList cfg.historySubstringSearch.searchDownKey)
           }
         '')
+
+        cfg.initExtra
       ]);
     }
 
