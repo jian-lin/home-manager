@@ -90,6 +90,14 @@ in {
         editor using the <envar>EDITOR</envar> environment variable.
       '';
     };
+
+    afterGraphicalSessionTarget = mkOption {
+      type = types.bool;
+      description =
+        "Whether to make emacs daemon start after graphical-session.target. It's useful if you want emacs daemon to get some environment variables, e.g. ibus related variables when using Gnome.";
+      default = false;
+      example = true;
+    };
   };
 
   config = mkIf cfg.enable (mkMerge [
@@ -97,6 +105,12 @@ in {
       assertions = [
         (lib.hm.assertions.assertPlatform "services.emacs" pkgs
           lib.platforms.linux)
+        {
+          assertion =
+            !(cfg.socketActivation.enable && cfg.afterGraphicalSessionTarget);
+          message =
+            "It doesn't make sense if both of these options are enabled.";
+        }
       ];
 
       systemd.user.services.emacs = {
@@ -104,6 +118,9 @@ in {
           Description = "Emacs text editor";
           Documentation =
             "info:emacs man:emacs(1) https://gnu.org/software/emacs/";
+
+          After =
+            mkIf cfg.afterGraphicalSessionTarget [ "graphical-session.target" ];
 
           # Avoid killing the Emacs session, which may be full of
           # unsaved buffers.
@@ -146,7 +163,14 @@ in {
             "${pkgs.coreutils}/bin/chmod --changes +w ${socketDir}";
         };
       } // optionalAttrs (!cfg.socketActivation.enable) {
-        Install = { WantedBy = [ "default.target" ]; };
+        Install = {
+          WantedBy = [
+            (if cfg.afterGraphicalSessionTarget then
+              "graphical-session.target"
+            else
+              "default.target")
+          ];
+        };
       };
 
       home = {
