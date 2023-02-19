@@ -101,14 +101,6 @@ in {
         editor using the <envar>EDITOR</envar> environment variable.
       '';
     };
-
-    afterGraphicalSessionTarget = mkOption {
-      type = types.bool;
-      description =
-        "Whether to make emacs daemon start after graphical-session.target.";
-      default = false;
-      example = true;
-    };
   };
 
   config = mkIf cfg.enable (mkMerge [
@@ -116,12 +108,6 @@ in {
       assertions = [
         (lib.hm.assertions.assertPlatform "services.emacs" pkgs
           lib.platforms.linux)
-        {
-          assertion = cfg.afterGraphicalSessionTarget
-            -> cfg.startWithUserSession;
-          message =
-            "'services.emacs.afterGraphicalSessionTarget' requires 'services.emacs.startWithUserSession = true'";
-        }
       ];
 
       systemd.user.services.emacs = {
@@ -129,9 +115,6 @@ in {
           Description = "Emacs text editor";
           Documentation =
             "info:emacs man:emacs(1) https://gnu.org/software/emacs/";
-
-          After =
-            mkIf cfg.afterGraphicalSessionTarget [ "graphical-session.target" ];
 
           # Avoid killing the Emacs session, which may be full of
           # unsaved buffers.
@@ -174,14 +157,7 @@ in {
             "${pkgs.coreutils}/bin/chmod --changes +w ${socketDir}";
         };
       } // optionalAttrs (cfg.startWithUserSession) {
-        Install = {
-          WantedBy = [
-            (if cfg.afterGraphicalSessionTarget then
-              "graphical-session.target"
-            else
-              "default.target")
-          ];
-        };
+        Install = { WantedBy = [ "default.target" ]; };
       };
 
       home = {
